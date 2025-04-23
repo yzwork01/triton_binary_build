@@ -1,0 +1,91 @@
+docker run --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root tritonserver:latest
+
+docker run --platform=linux/amd64 --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root rockylinux:8
+
+docker run --platform=linux/amd64 --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root ghcr.io/easybuilders/rockylinux-8.10:2024-11-25-12010010537.117
+
+LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH /opt/tritonserver/bin/tritonserver --model-repository=/tmp/model_repo/Triton_test --allow-metrics=true
+/opt/tritonserver/bin/tritonserver --model-repository=/tmp/model_repo/source/Triton_test --allow-metrics=true
+
+# Test
+curl -v localhost:8000/v2/health/ready
+
+
+curl -v http://127.0.0.1:8002/metrics
+
+
+docker save -o tritonserver_image.tar tritonserver:latest
+
+#build onnx runtime
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX:PATH=`pwd`/install -DTRITON_BUILD_ONNXRUNTIME_VERSION=1.19.2 -DTRITON_BUILD_CONTAINER_VERSION=24.09 -DTRITON_ENABLE_GPU=OFF -DTRITON_ENABLE_TENSORRT=OFF -DTRITON_ENABLE_METRICS=ON -DTRITON_ENABLE_ONNXRUNTIME_METRICS=ON -DCMAKE_SYSTEM_PROCESSOR=x86_64 ..
+make install
+
+#dependency
+apt install rapidjson-dev
+apt install cmake
+
+apt install -y docker.io
+apt install fuse-overlayfs
+
+dockerd # start docker daemon
+
+docker run --rm -it -v "$(pwd)":/tmp/model_repo --platform=linux/amd64 --entrypoint /bin/bash --user root ubuntu_triton_new
+
+
+docker run --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root ubuntu_triton_new
+
+## rockylinux dependency
+yum update -y
+yum install -y epel-release
+yum install -y wget
+yum install -y perl
+yum install -y cmake3
+yum install -y gcc-c++
+yum install -y libcurl-devel
+yum install -y libarchive-devel
+yum install -y libarchive
+yum install -y git
+
+# openssl
+cd /tmp
+wget https://www.openssl.org/source/openssl-3.0.12.tar.gz
+tar -xzf openssl-3.0.12.tar.gz
+cd openssl-3.0.12
+./config --prefix=/opt/openssl-3
+make -j$(nproc)
+make install
+
+# libb64
+cd /tmp
+git clone https://github.com/libb64/libb64.git
+cd libb64
+
+# python3.11
+
+cd /tmp
+curl -O https://www.python.org/ftp/python/3.11.8/Python-3.11.8.tgz && \
+    tar -xzf Python-3.11.8.tgz && \
+    cd Python-3.11.8 && \
+    ./configure --enable-optimizations && \
+    make -j$(nproc) && make altinstall && \
+    cd .. && rm -rf Python-3.11.8*
+pip3 install --upgrade pip
+pip3 install numpy<2
+pip3 install pybind11
+
+# glibc 2.29 or higher
+yum install -y bison python3
+
+cd /tmp
+wget http://ftp.gnu.org/gnu/libc/glibc-2.34.tar.gz
+tar -xvzf glibc-2.34.tar.gz
+cd glibc-2.34
+mkdir build
+cd build
+../configure --prefix=/opt/glibc-2.34
+make -j$(nproc)
+make install
+
+LD_LIBRARY_PATH=/opt/openssl-3/lib64:$LD_LIBRARY_PATH /opt/tritonserver/bin/tritonserver --model-repository=/tmp/model_repo/Triton_test --allow-metrics=true
