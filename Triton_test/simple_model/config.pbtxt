@@ -1,16 +1,18 @@
 name: "simple_model"
 backend: "python"
+max_batch_size: 16
+
 input [
   {
     name: "INPUT"
     data_type: TYPE_FP32
-    dims: [ -1 ]  # Supports dynamic batch size
+    dims: [20]  
   }
 ]
 output [
   {
     name: "OUTPUT"
     data_type: TYPE_FP32
-    dims: [ -1 ]
+    dims: [10]
   }
 ]

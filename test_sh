@@ -1,11 +1,11 @@
 docker run --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root tritonserver:latest
 
-docker run --platform=linux/amd64 --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root rockylinux:8
+docker run --platform=linux/amd64 --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root rockylinux:9
 
-docker run --platform=linux/amd64 --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root ghcr.io/easybuilders/rockylinux-8.10:2024-11-25-12010010537.117
+docker run --platform=linux/amd64 --rm -it -v "$(pwd)":/tmp/model_repo -p 8000:8000 -p 8001:8001 -p 8002:8002 --entrypoint /bin/bash --user root ubuntu:22.04
 
 LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH /opt/tritonserver/bin/tritonserver --model-repository=/tmp/model_repo/Triton_test --allow-metrics=true
-/opt/tritonserver/bin/tritonserver --model-repository=/tmp/model_repo/source/Triton_test --allow-metrics=true
+/opt/tritonserver/bin/tritonserver --model-repository=/tmp/model_repo/Triton_test --allow-metrics=true --log-verbose=1
 
 # Test
 curl -v localhost:8000/v2/health/ready
