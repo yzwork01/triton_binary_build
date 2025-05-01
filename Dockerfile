@@ -4,10 +4,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /workspace
 
 COPY setup_ubuntu2204.sh /workspace/setup_triton_env.sh
-COPY full_tri.zip /opt/full_tri.zip
+COPY /triton_binary_24.09/full_tri.zip /opt/full_tri.zip
 COPY Triton_test /opt/Triton_test
 
 RUN chmod +x /workspace/setup_triton_env.sh && /workspace/setup_triton_env.sh
+
+# Setup Triton files
+RUN unzip -o /opt/full_tri.zip -d /opt
+RUN chmod -R 777 /opt/tritonserver
+RUN cp -r /opt/Triton_test /home/
 
 EXPOSE 8000 8001 8002
 
